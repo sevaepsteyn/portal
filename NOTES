@@ -1,0 +1,66 @@
+sudo usermod -a -G tty,sudo,video,plugdev,input,render seva
+
+apt install screen
+apt install vim
+apt install ntp
+apt install x11-apps
+
+rsync -a --delete
+        $HOME/src
+        $HOME/opt
+
+        $HOME/.ssh/config
+        $HOME/.ssh/id_rsa
+        $HOME/.ssh/authorized_keys
+        $HOME/.ssh/known_hosts
+
+        $HOME/.bashrc
+
+sudo nohup X -noac >/dev/null &
+
+# turn off display power management system
+xset -dpms
+
+# turn off screen blanking
+xset s noblank
+
+# turn off screen saver
+xset s off
+
+-- 
+
+systemd-run --property PAMName=login \
+            --property User=seva \
+            --property StandardInput=tty \
+            --property TTYPath=/dev/tty8 \
+            sh -c 'chvt 8 && startx /usr/bin/x-terminal-emulator -- :1'
+
+
+
+
+-- 
+
+$ xwininfo -root
+
+xwininfo: Window id: 0x369 (the root window) (has no name)
+
+  Absolute upper-left X:  0
+  Absolute upper-left Y:  0
+  Relative upper-left X:  0
+  Relative upper-left Y:  0
+  Width: 2048
+  Height: 768
+  Depth: 24
+  Visual: 0x21
+  Visual Class: TrueColor
+  Border width: 0
+  Class: InputOutput
+  Colormap: 0x20 (installed)
+  Bit Gravity State: ForgetGravity
+  Window Gravity State: NorthWestGravity
+  Backing Store State: NotUseful
+  Save Under State: no
+  Map State: IsViewable
+  Override Redirect State: no
+  Corners:  +0+0  -0+0  -0-0  +0-0
+  -geometry 2048x768+0+0
