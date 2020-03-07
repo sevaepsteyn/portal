@@ -1,0 +1,24 @@
+# vi swap files
+*.swp
+
+# binaries and objects
+*.a
+*.o
+*.d
+*.so
+/obj/
+/bin/*
+
+# but keep bin/data in git
+!/bin/data
+
+# build system
+Makefile
+Project.xcconfig
+config.make
+*.xcodeproj
+openFrameworks-Info.plist
+*.qbs
+
+# generated files
+screenshot-*.png
