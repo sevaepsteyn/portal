@@ -1,18 +1,14 @@
 /* vim: set tabstop=4 shiftwidth=4 expandtab: */
 #include "ofApp.h"
 
-//--------------------------------------------------------------
 void ofApp::setup(){
-    //ofSetVerticalSync( true );
+
     ofSetFrameRate( 60 );
     ofSetWindowTitle( "Brahman portal" );
     //ofEnableAntiAliasing();
+    //ofSetVerticalSync( true );
+
     ofSetLogLevel( OF_LOG_VERBOSE );
-
-    //ofSetBackgroundAuto(false);
-    bgColor = ofColor::black;
-    ofSetBackgroundColor(bgColor);
-
     ofLogNotice() << "OF version " << ofGetVersionMajor() << "." << ofGetVersionMinor() << "." << ofGetVersionPatch() << " " << ofGetVersionPreRelease();
 
 /*
@@ -23,38 +19,51 @@ void ofApp::setup(){
 #endif
 */
 
-    ofLogNotice() << "Hello!\n";
+#define SIZE_X 160
+#define BORDER_X 16
+#define TOTAL_X ( 6*SIZE_X + 5*BORDER_X )
+#define SIZE_Y 160
+#define BORDER_Y 16
+#define TOTAL_Y ( 3*SIZE_Y + 2*BORDER_Y )
 
-    //create the socket and set to send to 127.0.0.1:11999
-    ofxUDPSettings settings;
-    //settings.sendTo( "127.0.0.1", 7979 );
-    settings.receiveOn( 7979 );
-    settings.blocking = false;
+    if( (ofGetEnv("PORTAL_X").length() != 0) &&  (ofGetEnv("PORTAL_Y").length() != 0) ){
 
-    udpConnection.Setup( settings );
+        int portalX = ofToInt( ofGetEnv("PORTAL_X") );
+        int portalY = ofToInt( ofGetEnv("PORTAL_Y") );
+
+        translateX = portalX * ( SIZE_X + BORDER_X );
+        translateY = portalY * ( SIZE_Y + BORDER_Y );
+
+        ofLogNotice() << "My location, x: " << translateX << ", y: " << translateY;
+
+        ofSetWindowShape( SIZE_X, SIZE_Y );
+        ofSetWindowPosition( 32 + translateX, 32 + translateY );
+
+    } else {
+
+        translateX = 0;
+        translateY = 0;
+
+        ofLogNotice() << "No portal location received from env";
+    }
+
+
+    bgColor = ofColor::black;
+    ofSetBackgroundColor(bgColor);
+
+    ofxUDPSettings socketSettings;
+    socketSettings.receiveOn( 7979 );
+    socketSettings.blocking = false;
+    udpConnection.Setup( socketSettings );
 
     font.load( "fonts/VT323-Regular.ttf", ofGetWindowHeight()/6 );
+    //string text = ofToString( ofGetTimestampString("%H:%M:%S.%i") );
+    string text = ofToString( ofGetTimestampString("%S.%i") );
 
-    textWidth = textHeight = 0;
-
-//portal01    DC:A6:32:01:16:F0    10.79.103.101
-//portal02    DC:A6:32:75:E4:4E    10.79.103.102
-//portal03    DC:A6:32:76:3A:6E    10.79.103.103
-//portal04    DC:A6:32:75:D6:E4    10.79.103.104
-//portal05    DC:A6:32:75:D6:F3    10.79.103.105
-//portal06    DC:A6:32:75:E1:D3    10.79.103.106
-//portal07    DC:A6:32:01:18:6A    10.79.103.107
-//portal08    DC:A6:32:01:0F:38    10.79.103.108
-//portal09    DC:A6:32:01:19:35    10.79.103.109
-//portal10    DC:A6:32:76:39:ED    10.79.103.110
-//portal11    DC:A6:32:75:FF:D0    10.79.103.111
-//portal12    DC:A6:32:76:2D:DA    10.79.103.112
-//portal13    DC:A6:32:75:E3:38    10.79.103.113
-//portal14    DC:A6:32:75:E2:0D    10.79.103.114
-//portal15    DC:A6:32:76:05:0D    10.79.103.115
-//portal16    DC:A6:32:01:00:0B    10.79.103.116
-//portal17    DC:A6:32:01:0F:23    10.79.103.117
-//portal18    DC:A6:32:75:E4:43    10.79.103.118
+    // textWidth doesn't seem to be constant, even for a mono font
+    // so we get it once and reuse it
+    textWidth = font.stringWidth(text);
+    textHeight = font.stringHeight(text);
 
 }
 
@@ -65,8 +74,7 @@ void ofApp::update(){
     udpConnection.Receive( udpMessage, 1024 );
     message = udpMessage;
     if( message != "" ){
-        //atoi(message.c_str());
-        ofLogVerbose() << "Got: " << message;
+        ofLogVerbose() << "Received UDP message: " << message;
 
         vector<string> color = ofSplitString( message, "," );
         if( color.size() == 3) {
@@ -80,20 +88,8 @@ void ofApp::update(){
 void ofApp::draw(){
     ofSetBackgroundColor( bgColor );
         
-    //ofPushMatrix();
-    //ofDrawBitmapString( ofToString(ofGetFrameRate(), 2 ), 100, 100);
-        //ofScale( 2, 2 );
-        //ofDrawBitmapString( ofToString( ofGetSystemTimeMicros() ), 100, 200);
-    //ofPopMatrix();
-
-    // MAC address /sys/class/net/eth0/address
-    
-    string text = ofToString( ofGetTimestampString("%H:%M:%S.%i") );
-
-    // textWidth doesn't seem to be constant, even for a mono font
-    // so get it once and reuse it...
-    if( textWidth == 0 ) textWidth = font.stringWidth(text);
-    if( textHeight == 0 ) textHeight = font.stringHeight(text);
+    //string text = ofToString( ofGetTimestampString("%H:%M:%S.%i") );
+    string text = ofToString( ofGetTimestampString("%S.%i") );
 
     ofSetColor( bgColor.getInverted() );
     font.drawString( text, (ofGetWindowWidth() - textWidth)/2, (ofGetWindowHeight() + textHeight)/2 );
@@ -106,17 +102,19 @@ void ofApp::draw(){
     // float dt = 1.0 / 60.0;
     // phase += dt * freq * M_TWO_PI;
 
-    int x = ofMap( sin( phase ), -1, 1, 0, ofGetWindowWidth() );
+    //int x = ofMap( sin( phase ), -1, 1, 0, ofGetWindowWidth() );
+    int x = ofMap( sin( 2*phase ), -1, 1, 0, TOTAL_X );
+
     //int y = ofMap( cos( phase ), -1, 1, 0, ofGetWindowHeight() );
+    int y = ofMap( cos( phase ), -1, 1, 0, TOTAL_Y );
 
-    int y = ofMap( cos( phase ), -1, 1, 0, 2*ofGetWindowHeight() );
-    y -= ofGetWindowHeight();
-
-    ofDrawCircle( x, y, 64 );
+    ofPushMatrix();
+        ofTranslate( -translateX, -translateY );
+        ofDrawCircle( x, y, 64 );
+    ofPopMatrix();
 
 }
 
-//--------------------------------------------------------------
 void ofApp::keyPressed(int key){
 
     switch ( key ) {
@@ -127,7 +125,6 @@ void ofApp::keyPressed(int key){
         case 'p':
         case 'P':
         case OF_KEY_RETURN:
-            ofLogNotice() << "OF version " << ofGetVersionMajor() << "." << ofGetVersionMinor() << "." << ofGetVersionPatch() << " " << ofGetVersionPreRelease();
             ofSaveScreen( "screenshot-" + ofToString( ofGetUnixTime() ) + ".png");
             break;
         case 'q':
@@ -135,62 +132,47 @@ void ofApp::keyPressed(int key){
             ofExit();
             break;
         case '?':
-#ifdef SERIAL_PORT
-            serial.listDevices();
-#endif
-#ifdef MIDI_PORT
-            midiIn.listInPorts();
-#endif
+            ofLogNotice() << "OF version " << ofGetVersionMajor() << "." << ofGetVersionMinor() << "." << ofGetVersionPatch() << " " << ofGetVersionPreRelease();
             break;
     }
 }
 
-//--------------------------------------------------------------
 void ofApp::keyReleased(int key){
 
 }
 
-//--------------------------------------------------------------
 void ofApp::mouseMoved(int x, int y ){
 
 }
 
-//--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button){
 
 }
 
-//--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
 
 }
 
-//--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button){
 
 }
 
-//--------------------------------------------------------------
 void ofApp::mouseEntered(int x, int y){
 
 }
 
-//--------------------------------------------------------------
 void ofApp::mouseExited(int x, int y){
 
 }
 
-//--------------------------------------------------------------
 void ofApp::windowResized(int w, int h){
 
 }
 
-//--------------------------------------------------------------
 void ofApp::gotMessage(ofMessage msg){
 
 }
 
-//--------------------------------------------------------------
 void ofApp::dragEvent(ofDragInfo dragInfo){ 
 
 }

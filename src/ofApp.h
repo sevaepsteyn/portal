@@ -32,4 +32,7 @@ class ofApp : public ofBaseApp{
 
         int textWidth;
         int textHeight;
+
+        int translateX;
+        int translateY;
 };
