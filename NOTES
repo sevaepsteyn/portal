@@ -11,6 +11,7 @@ rsync -a --delete
 
         $HOME/.ssh/config
         $HOME/.ssh/id_rsa
+        $HOME/.ssh/id_rsa.pub
         $HOME/.ssh/authorized_keys
         $HOME/.ssh/known_hosts
 
@@ -64,3 +65,25 @@ xwininfo: Window id: 0x369 (the root window) (has no name)
   Override Redirect State: no
   Corners:  +0+0  -0+0  -0-0  +0-0
   -geometry 2048x768+0+0
+
+-- 
+
+//portal01    DC:A6:32:01:16:F0    10.79.103.101
+//portal02    DC:A6:32:75:E4:4E    10.79.103.102
+//portal03    DC:A6:32:76:3A:6E    10.79.103.103
+//portal04    DC:A6:32:75:D6:E4    10.79.103.104
+//portal05    DC:A6:32:75:D6:F3    10.79.103.105
+//portal06    DC:A6:32:75:E1:D3    10.79.103.106
+//portal07    DC:A6:32:01:18:6A    10.79.103.107
+//portal08    DC:A6:32:01:0F:38    10.79.103.108
+//portal09    DC:A6:32:01:19:35    10.79.103.109
+//portal10    DC:A6:32:76:39:ED    10.79.103.110
+//portal11    DC:A6:32:75:FF:D0    10.79.103.111
+//portal12    DC:A6:32:76:2D:DA    10.79.103.112
+//portal13    DC:A6:32:75:E3:38    10.79.103.113
+//portal14    DC:A6:32:75:E2:0D    10.79.103.114
+//portal15    DC:A6:32:76:05:0D    10.79.103.115
+//portal16    DC:A6:32:01:00:0B    10.79.103.116
+//portal17    DC:A6:32:01:0F:23    10.79.103.117
+//portal18    DC:A6:32:75:E4:43    10.79.103.118
+
