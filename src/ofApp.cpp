@@ -4,12 +4,12 @@
 void ofApp::setup(){
 
     ofSetFrameRate( 60 );
-    ofSetWindowTitle( "Brahman portal" );
+    ofSetWindowTitle( "Mars Portal" );
+    ofSetVerticalSync( true );
     //ofEnableAntiAliasing();
-    //ofSetVerticalSync( true );
 
     ofSetLogLevel( OF_LOG_VERBOSE );
-    ofLogNotice() << "OF version " << ofGetVersionMajor() << "." << ofGetVersionMinor() << "." << ofGetVersionPatch() << " " << ofGetVersionPreRelease();
+    //ofLogNotice() << "OF version " << ofGetVersionMajor() << "." << ofGetVersionMinor() << "." << ofGetVersionPatch() << " " << ofGetVersionPreRelease();
 
 /*
 #if OF_VERSION_MINOR >= 11
@@ -19,30 +19,30 @@ void ofApp::setup(){
 #endif
 */
 
-#define SIZE_X 160
-#define BORDER_X 16
-#define TOTAL_X ( 6*SIZE_X + 5*BORDER_X )
-#define SIZE_Y 160
-#define BORDER_Y 16
-#define TOTAL_Y ( 3*SIZE_Y + 2*BORDER_Y )
+    if( (ofGetEnv("PORTAL").length() != 0) ){
 
-    if( (ofGetEnv("PORTAL_X").length() != 0) &&  (ofGetEnv("PORTAL_Y").length() != 0) ){
+        translateX = ofToInt( ofGetEnv("TRANSLATE_X") );
+        translateY = ofToInt( ofGetEnv("TRANSLATE_Y") );
 
-        int portalX = ofToInt( ofGetEnv("PORTAL_X") );
-        int portalY = ofToInt( ofGetEnv("PORTAL_Y") );
+        sizeX = ofToInt( ofGetEnv("SIZE_X") );
+        sizeY = ofToInt( ofGetEnv("SIZE_Y") );
 
-        translateX = portalX * ( SIZE_X + BORDER_X );
-        translateY = portalY * ( SIZE_Y + BORDER_Y );
+        totalX = ofToInt( ofGetEnv("TOTAL_X") );
+        totalY = ofToInt( ofGetEnv("TOTAL_Y") );
 
         ofLogNotice() << "My location, x: " << translateX << ", y: " << translateY;
 
-        ofSetWindowShape( SIZE_X, SIZE_Y );
+        ofSetWindowShape( sizeX, sizeY );
         ofSetWindowPosition( 32 + translateX, 32 + translateY );
+
 
     } else {
 
         translateX = 0;
         translateY = 0;
+
+        totalX = ofGetWindowWidth();
+        totalY = ofGetWindowHeight();
 
         ofLogNotice() << "No portal location received from env";
     }
@@ -58,13 +58,19 @@ void ofApp::setup(){
 
     font.load( "fonts/VT323-Regular.ttf", ofGetWindowHeight()/6 );
     //string text = ofToString( ofGetTimestampString("%H:%M:%S.%i") );
-    string text = ofToString( ofGetTimestampString("%S.%i") );
+    text = ofToString( ofGetTimestampString("%S.%i") );
 
     // textWidth doesn't seem to be constant, even for a mono font
     // so we get it once and reuse it
     textWidth = font.stringWidth(text);
     textHeight = font.stringHeight(text);
+ 
+    sound.load( "e.wav");
+    sound.setVolume( 0.0 );
+    sound.setLoop( true );
+    sound.setSpeed( 1.0 );
 
+    myRectangle.setup();
 }
 
 //--------------------------------------------------------------
@@ -82,36 +88,61 @@ void ofApp::update(){
         }
     }
 
+    //string text = ofToString( ofGetTimestampString("%H:%M:%S.%i") );
+    text = ofToString( ofGetTimestampString("%S.%i") );
+
+    float freq = 1.0 / 5.0;
+    float phase = freq * ofGetSystemTimeMillis()/1000 * TWO_PI;
+    //float dt = 1.0 / 60.0;
+
+    x = ofMap( sin( 2 * phase ), -1, 1, 0, totalX );
+    //x = ofMap( sin( 2 * phase ), -1, 1, 0, ofGetWindowWidth() );
+
+    y = ofMap( cos( phase ), -1, 1, 0, totalY );
+
+/*
+    pct += 0.01f;		// increase by a certain amount
+    if (pct > 1) {
+    	pct = 0;	// just between 0 and 1 (0% and 100%)
+    }
+    myRectangle.interpolateByPct(pct);	// go between pta and ptb
+*/
+
+    distance = sqrt ( pow((ofGetWindowWidth()/2-x-translateX),2) + pow((ofGetWindowHeight()/2-y-translateY),2) );
+    volume = ofMap( distance, ofGetWindowWidth()/2, 0, 0, 1 );
+    sound.setVolume( volume );
+
+    if( ! sound.isPlaying() ) {
+        if( ofToInt(ofGetTimestampString("%S")) == 0) {
+            sound.play();
+        }
+    }
+
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
     ofSetBackgroundColor( bgColor );
-        
-    //string text = ofToString( ofGetTimestampString("%H:%M:%S.%i") );
-    string text = ofToString( ofGetTimestampString("%S.%i") );
-
     ofSetColor( bgColor.getInverted() );
+        
     font.drawString( text, (ofGetWindowWidth() - textWidth)/2, (ofGetWindowHeight() + textHeight)/2 );
 
     ofSetColor( ofColor::pink );
-    ofSetCircleResolution(64);
-
-    float freq = 0.2;
-    float phase = freq * ofGetSystemTimeMillis()/1000 * TWO_PI;
-    // float dt = 1.0 / 60.0;
-    // phase += dt * freq * M_TWO_PI;
-
-    //int x = ofMap( sin( phase ), -1, 1, 0, ofGetWindowWidth() );
-    int x = ofMap( sin( 2*phase ), -1, 1, 0, TOTAL_X );
-
-    //int y = ofMap( cos( phase ), -1, 1, 0, ofGetWindowHeight() );
-    int y = ofMap( cos( phase ), -1, 1, 0, TOTAL_Y );
+    ofSetCircleResolution( 64 );
 
     ofPushMatrix();
+        ofDrawBitmapString( ofGetWindowWidth(), 10, 10 );
+        ofDrawBitmapString( ofGetWindowHeight(), 10, 30 );
+        ofDrawBitmapString( x, 10, 50 );
+        ofDrawBitmapString( y, 10, 70 );
+        ofDrawBitmapString( distance, 10, 90 );
+        ofDrawBitmapString( volume, 10, 110 );
         ofTranslate( -translateX, -translateY );
-        ofDrawCircle( x, y, 64 );
+        ofDrawCircle( x, y, 128*volume );
     ofPopMatrix();
+
+    //myRectangle.draw();
+
 
 }
 

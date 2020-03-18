@@ -4,6 +4,8 @@
 #include "ofMain.h"
 #include "ofxNetwork.h"
 
+#include "Test.h"
+
 class ofApp : public ofBaseApp{
 
     public:
@@ -23,16 +25,25 @@ class ofApp : public ofBaseApp{
         void dragEvent(ofDragInfo dragInfo);
         void gotMessage(ofMessage msg);
 
-        ofxUDPManager udpConnection;
-        string message;
-
-        ofTrueTypeFont font;
+        int translateX, translateY;
+        int sizeX, sizeY;
+        int totalX, totalY;
 
         ofColor bgColor;
 
-        int textWidth;
-        int textHeight;
+        ofxUDPManager udpConnection;
+        string message;
 
-        int translateX;
-        int translateY;
+        string text;
+        ofTrueTypeFont font;
+        int textWidth, textHeight;
+
+        int x, y, z;
+        float distance;
+
+        ofSoundPlayer sound;
+        float volume;
+
+        float pct;
+        Test myRectangle;
 };
