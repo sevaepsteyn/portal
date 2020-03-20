@@ -1,6 +1,12 @@
 /* vim: set tabstop=4 shiftwidth=4 expandtab: */
 #include "ofApp.h"
 
+// When not running portal mode
+#define DEBUG_SCREEN_BUFFER 32
+
+#define MIN_Z 0
+#define MAX_Z ofGetWindowWidth()
+
 void ofApp::setup(){
 
     ofSetFrameRate( 60 );
@@ -24,16 +30,17 @@ void ofApp::setup(){
         translateX = ofToInt( ofGetEnv("TRANSLATE_X") );
         translateY = ofToInt( ofGetEnv("TRANSLATE_Y") );
 
-        sizeX = ofToInt( ofGetEnv("SIZE_X") );
-        sizeY = ofToInt( ofGetEnv("SIZE_Y") );
+        screenX = ofToInt( ofGetEnv("SIZE_X") );
+        screenY = ofToInt( ofGetEnv("SIZE_Y") );
 
         totalX = ofToInt( ofGetEnv("TOTAL_X") );
         totalY = ofToInt( ofGetEnv("TOTAL_Y") );
 
         ofLogNotice() << "My location, x: " << translateX << ", y: " << translateY;
 
-        ofSetWindowShape( sizeX, sizeY );
-        ofSetWindowPosition( 32 + translateX, 32 + translateY );
+        ofSetWindowShape( screenX, screenY );
+
+        ofSetWindowPosition( DEBUG_SCREEN_BUFFER + translateX, DEBUG_SCREEN_BUFFER + translateY );
 
 
     } else {
@@ -41,12 +48,34 @@ void ofApp::setup(){
         translateX = 0;
         translateY = 0;
 
+        screenX = ofGetWindowWidth();
+        screenY = ofGetWindowHeight();
+
         totalX = ofGetWindowWidth();
         totalY = ofGetWindowHeight();
 
         ofLogNotice() << "No portal location received from env";
     }
 
+    // Center of *this* screen at z=0
+    screenCenter = ofPoint( screenX/2 + translateX, screenY/2 + translateY, 0 );
+
+    // Calculate 3D box corners
+    int i = 0;
+    for ( int _x = 0; _x <= totalX; _x += totalX ){
+        for ( int _y = 0; _y <= totalY; _y += totalY ){
+            for ( int _z = MIN_Z; _z <= (MAX_Z-MIN_Z); _z += (MAX_Z-MIN_Z) ){
+                //ofLogNotice() << "i: " << i << ", x: " << _x << ", y: " << _y << ", z: " <<_z;
+                corners[i++] = ofPoint( _x, _y, _z );
+            }
+        }
+    }
+
+    // Max distance from screen center to all corners
+    maxDistance = 0;
+    for ( int j = 0; j < i; j++ ){
+        maxDistance = max( maxDistance, screenCenter.distance(corners[j]) );
+    }
 
     bgColor = ofColor::black;
     ofSetBackgroundColor(bgColor);
@@ -68,7 +97,7 @@ void ofApp::setup(){
     sound.load( "e.wav");
     sound.setVolume( 0.0 );
     sound.setLoop( true );
-    sound.setSpeed( 1.0 );
+    sound.setSpeed( 0.66 );
 
     myRectangle.setup();
 }
@@ -95,21 +124,24 @@ void ofApp::update(){
     float phase = freq * ofGetSystemTimeMillis()/1000 * TWO_PI;
     //float dt = 1.0 / 60.0;
 
-    x = ofMap( sin( 2 * phase ), -1, 1, 0, totalX );
-    //x = ofMap( sin( 2 * phase ), -1, 1, 0, ofGetWindowWidth() );
+    x = ofMap( sin( 0.2 * phase ), -1, 1, 0, totalX );
+    //x = ofMap( sin( 4 * phase ), -1, 1, 0, ofGetWindowWidth() );
 
-    y = ofMap( cos( phase ), -1, 1, 0, totalY );
+    y = ofMap( cos( 0.1 * phase ), -1, 1, 0, totalY );
 
-/*
-    pct += 0.01f;		// increase by a certain amount
-    if (pct > 1) {
-    	pct = 0;	// just between 0 and 1 (0% and 100%)
-    }
-    myRectangle.interpolateByPct(pct);	// go between pta and ptb
-*/
+    z = ofMap( sin( 0.2 * phase), -1, 1, MIN_Z, MAX_Z );
 
-    distance = sqrt ( pow((ofGetWindowWidth()/2-x-translateX),2) + pow((ofGetWindowHeight()/2-y-translateY),2) );
-    volume = ofMap( distance, ofGetWindowWidth()/2, 0, 0, 1 );
+    /*
+    distance = sqrt( 0
+        + pow( x - translateX - screenX/2, 2)
+        + pow( y - translateY - screenY/2, 2)
+        + pow( z, 2)
+    );
+    */
+    distance = screenCenter.distance( ofPoint(x, y, z) );
+
+    volume = ofMap( distance, 0, maxDistance, 1, 0 );
+
     sound.setVolume( volume );
 
     if( ! sound.isPlaying() ) {
@@ -130,15 +162,16 @@ void ofApp::draw(){
     ofSetColor( ofColor::pink );
     ofSetCircleResolution( 64 );
 
+    ofDrawBitmapString( "x, y, z: " + ofToString(x) + ", " + ofToString(y) + ", " + ofToString(z), 10, 10 );
+    ofDrawBitmapString( "screen width, height: " + ofToString(ofGetWindowWidth()) + ", " + ofToString(ofGetWindowHeight()), 10, 30 );
+    ofDrawBitmapString( "translate x, y: " + ofToString(translateX) + ", " + ofToString(translateY), 10, 50 );
+    ofDrawBitmapString( "center: " + ofToString(screenCenter), 10, 70 );
+    ofDrawBitmapString( "dist to center (max): " + ofToString(distance) + " (" + ofToString(maxDistance) + ")", 10, 90 );
+    ofDrawBitmapString( "volume: " + ofToString(volume), 10, 110 );
+
     ofPushMatrix();
-        ofDrawBitmapString( ofGetWindowWidth(), 10, 10 );
-        ofDrawBitmapString( ofGetWindowHeight(), 10, 30 );
-        ofDrawBitmapString( x, 10, 50 );
-        ofDrawBitmapString( y, 10, 70 );
-        ofDrawBitmapString( distance, 10, 90 );
-        ofDrawBitmapString( volume, 10, 110 );
         ofTranslate( -translateX, -translateY );
-        ofDrawCircle( x, y, 128*volume );
+            ofDrawCircle( x, y, 64 * ofMap( z, MIN_Z, MAX_Z, 1, 0.1 ) );
     ofPopMatrix();
 
     //myRectangle.draw();
@@ -205,5 +238,4 @@ void ofApp::gotMessage(ofMessage msg){
 }
 
 void ofApp::dragEvent(ofDragInfo dragInfo){ 
-
 }

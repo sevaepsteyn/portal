@@ -26,8 +26,12 @@ class ofApp : public ofBaseApp{
         void gotMessage(ofMessage msg);
 
         int translateX, translateY;
-        int sizeX, sizeY;
+        int screenX, screenY;
         int totalX, totalY;
+
+        ofPoint screenCenter;
+        ofPoint corners[8];
+        float maxDistance;
 
         ofColor bgColor;
 
