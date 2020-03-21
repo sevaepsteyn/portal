@@ -5,11 +5,13 @@
 #include "ofxNetwork.h"
 #include "ofxOsc.h"
 
-#include "Clock.h"
-
 #define OSC_PORT 7777
 #define BG_COLOR_ADDRESS "/color"
 #define OF_KEY_SPACE 32
+
+#include "Clock.h"
+
+#include "Ball.h"
 
 class ofApp : public ofBaseApp{
 
@@ -36,24 +38,12 @@ class ofApp : public ofBaseApp{
         int borderX, shiftX;
         string portalId, mapId;
 
-        ofPoint screenCenter;
-        ofPoint corners[8];
-        float maxDistance;
-
         ofColor bgColor;
 
-        ofxUDPManager udpConnection;
-        string message;
+        ofxOscReceiver osc;
 
         Clock clock;
 
-        int x, y, z;
-        float distance;
+        Ball ball;
 
-        ofSoundPlayer sound;
-        float volume;
-
-        ofVideoPlayer video;
-
-        ofxOscReceiver osc;
 };

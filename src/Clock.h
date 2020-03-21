@@ -7,11 +7,11 @@ class Clock {
 
     public:
 
-    void setup();
-    void update();
-    void draw();
+        void setup();
+        void update();
+        void draw();
 
-    string text;
-    ofTrueTypeFont font;
-    int textWidth, textHeight;
+        string text;
+        ofTrueTypeFont font;
+        int textWidth, textHeight;
 };

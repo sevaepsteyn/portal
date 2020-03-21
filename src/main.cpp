@@ -11,7 +11,7 @@ int main( ){
 
     //settings.width = 1024;
     //settings.height = 768;
-    settings.setSize( 1024, 768 );
+    settings.setSize( 1280, 720 );
     settings.decorated = false;
     settings.windowMode = OF_WINDOW;
 
