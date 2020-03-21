@@ -12,7 +12,7 @@ void ofApp::setup(){
     ofSetFrameRate( 60 );
     ofSetWindowTitle( "Mars Portal" );
     ofSetVerticalSync( true );
-    //ofEnableAntiAliasing();
+    ofEnableAntiAliasing();
 
     ofSetLogLevel( OF_LOG_VERBOSE );
     //ofLogNotice() << "OF version " << ofGetVersionMajor() << "." << ofGetVersionMinor() << "." << ofGetVersionPatch() << " " << ofGetVersionPreRelease();
@@ -25,22 +25,44 @@ void ofApp::setup(){
 #endif
 */
 
+/*
+export SIDE=NORTH
+export PORTAL=YES
+export MAP_ID=e
+export COUNT_X=6
+export COUNT_Y=3
+export SIZE_X=1280
+export SIZE_Y=720
+export GRID_ID=15
+export TRANSLATE_X=6432
+export TRANSLATE_Y=24
+export PORTAL_ID=portal09
+*/
+
+
     if( (ofGetEnv("PORTAL").length() != 0) ){
 
         translateX = ofToInt( ofGetEnv("TRANSLATE_X") );
         translateY = ofToInt( ofGetEnv("TRANSLATE_Y") );
 
-        screenX = ofToInt( ofGetEnv("SIZE_X") );
-        screenY = ofToInt( ofGetEnv("SIZE_Y") );
+        sizeX = ofToInt( ofGetEnv("SIZE_X") );
+        sizeY = ofToInt( ofGetEnv("SIZE_Y") );
 
         totalX = ofToInt( ofGetEnv("TOTAL_X") );
         totalY = ofToInt( ofGetEnv("TOTAL_Y") );
 
+        shiftX = ofToInt( ofGetEnv("SHIFT_X") );
+        borderX = ofToInt( ofGetEnv("BORDER_X") );
+        translateX += shiftX + borderX;
+
+        portalId = ofGetEnv("PORTAL_ID");
+        mapId = ofGetEnv("MAP_ID");
+
         ofLogNotice() << "My location, x: " << translateX << ", y: " << translateY;
 
-        ofSetWindowShape( screenX, screenY );
+        ofSetWindowShape( sizeX, sizeY );
 
-        ofSetWindowPosition( DEBUG_SCREEN_BUFFER + translateX, DEBUG_SCREEN_BUFFER + translateY );
+        ofSetWindowPosition( shiftX, 0 );
 
 
     } else {
@@ -48,8 +70,11 @@ void ofApp::setup(){
         translateX = 0;
         translateY = 0;
 
-        screenX = ofGetWindowWidth();
-        screenY = ofGetWindowHeight();
+        shiftX = 0;
+        borderX = 0;
+
+        sizeX = ofGetWindowWidth();
+        sizeY = ofGetWindowHeight();
 
         totalX = ofGetWindowWidth();
         totalY = ofGetWindowHeight();
@@ -58,7 +83,7 @@ void ofApp::setup(){
     }
 
     // Center of *this* screen at z=0
-    screenCenter = ofPoint( screenX/2 + translateX, screenY/2 + translateY, 0 );
+    screenCenter = ofPoint( sizeX/2 + translateX, sizeY/2 + translateY, 0 );
 
     // Calculate 3D box corners
     int i = 0;
@@ -121,20 +146,22 @@ void ofApp::update(){
     text = ofToString( ofGetTimestampString("%S.%i") );
 
     float freq = 1.0 / 5.0;
-    float phase = freq * ofGetSystemTimeMillis()/1000 * TWO_PI;
+    //float phase = freq * ofGetSystemTimeMillis()/1000 * TWO_PI;
+    float phase = freq * (ofToFloat(ofGetTimestampString("%S.%i"))) * TWO_PI;
     //float dt = 1.0 / 60.0;
 
-    x = ofMap( sin( 0.2 * phase ), -1, 1, 0, totalX );
+    x = ofMap( sin( 2 * phase ), -1, 1, 0, totalX );
     //x = ofMap( sin( 4 * phase ), -1, 1, 0, ofGetWindowWidth() );
 
-    y = ofMap( cos( 0.1 * phase ), -1, 1, 0, totalY );
+    y = ofMap( cos( phase ), -1, 1, 0, totalY );
 
-    z = ofMap( sin( 0.2 * phase), -1, 1, MIN_Z, MAX_Z );
+    z = ofMap( sin( 1 * phase), -1, 1, MIN_Z, MAX_Z );
+    z = 0;
 
     /*
     distance = sqrt( 0
-        + pow( x - translateX - screenX/2, 2)
-        + pow( y - translateY - screenY/2, 2)
+        + pow( x - translateX - sizeX/2, 2)
+        + pow( y - translateY - sizeY/2, 2)
         + pow( z, 2)
     );
     */
@@ -164,14 +191,17 @@ void ofApp::draw(){
 
     ofDrawBitmapString( "x, y, z: " + ofToString(x) + ", " + ofToString(y) + ", " + ofToString(z), 10, 10 );
     ofDrawBitmapString( "screen width, height: " + ofToString(ofGetWindowWidth()) + ", " + ofToString(ofGetWindowHeight()), 10, 30 );
-    ofDrawBitmapString( "translate x, y: " + ofToString(translateX) + ", " + ofToString(translateY), 10, 50 );
-    ofDrawBitmapString( "center: " + ofToString(screenCenter), 10, 70 );
-    ofDrawBitmapString( "dist to center (max): " + ofToString(distance) + " (" + ofToString(maxDistance) + ")", 10, 90 );
-    ofDrawBitmapString( "volume: " + ofToString(volume), 10, 110 );
+    ofDrawBitmapString( "total width, total height: " + ofToString(totalX) + ", " + ofToString(totalY), 10, 50 );
+    ofDrawBitmapString( "translate x, y: " + ofToString(translateX) + ", " + ofToString(translateY), 10, 70 );
+    ofDrawBitmapString( "center: " + ofToString(screenCenter), 10, 90 );
+    ofDrawBitmapString( "dist to center (max): " + ofToString(distance) + " (" + ofToString(maxDistance) + ")", 10, 110 );
+    ofDrawBitmapString( "volume: " + ofToString(volume), 10, 130 );
+    ofDrawBitmapString( "portalId (mapId): " + portalId + " (" + mapId + ")", 10, 150 );
+    ofDrawBitmapString( "phase: " + ofToString( 1.0/5.0 * ofGetSystemTimeMillis()/1000 * TWO_PI ), 10, 170 );
 
     ofPushMatrix();
         ofTranslate( -translateX, -translateY );
-            ofDrawCircle( x, y, 64 * ofMap( z, MIN_Z, MAX_Z, 1, 0.1 ) );
+            ofDrawCircle( x, y, 256 * ofMap( z, MIN_Z, MAX_Z, 1, 0.1 ) );
     ofPopMatrix();
 
     //myRectangle.draw();

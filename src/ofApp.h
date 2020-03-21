@@ -26,8 +26,10 @@ class ofApp : public ofBaseApp{
         void gotMessage(ofMessage msg);
 
         int translateX, translateY;
-        int screenX, screenY;
+        int sizeX, sizeY;
         int totalX, totalY;
+        int borderX, shiftX;
+        string portalId, mapId;
 
         ofPoint screenCenter;
         ofPoint corners[8];

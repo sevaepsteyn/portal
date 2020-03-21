@@ -1,9 +1,31 @@
-sudo usermod -a -G tty,sudo,video,plugdev,input,render seva
+# On the pi
+sudo systemctl stop lightdm
+sudo nohup X -ac &
+export DISPLAY=:0
+xrandr --output HDMI-1 --mode 1280x720 --output HDMI-2 --mode 1280x720 --right-of HDMI-1
+# turn off display power management system
+xset -dpms
+# turn off screen blanking
+xset s noblank
+# turn off screen saver
+xset s off
 
-apt install screen
-apt install vim
-apt install ntp
-apt install x11-apps
+cd src/seva/portal
+source ~/.portalrc
+make RunRelease
+
+# Local
+
+csshx $(for i in $(seq -w 1 18); do echo portal$i; done)
+for i in $(seq -w 1 18); do rsync -ad src/* portal$i:src/seva/portal/src ; done
+
+for i in $(seq -w 1 18); do echo 0,0,128 >/dev/udp/10.79.103.1$i/7979; sleep 1; done
+
+for i in $(seq -w 1 18); do ssh -n portal$i sudo reboot; done
+
+-- 
+
+sudo usermod -a -G tty,sudo,video,plugdev,input,render seva
 
 rsync -a --delete
         $HOME/src
@@ -17,16 +39,6 @@ rsync -a --delete
 
         $HOME/.bashrc
 
-sudo nohup X -noac >/dev/null &
-
-# turn off display power management system
-xset -dpms
-
-# turn off screen blanking
-xset s noblank
-
-# turn off screen saver
-xset s off
 
 -- 
 
@@ -42,29 +54,6 @@ systemd-run --property PAMName=login \
 -- 
 
 $ xwininfo -root
-
-xwininfo: Window id: 0x369 (the root window) (has no name)
-
-  Absolute upper-left X:  0
-  Absolute upper-left Y:  0
-  Relative upper-left X:  0
-  Relative upper-left Y:  0
-  Width: 2048
-  Height: 768
-  Depth: 24
-  Visual: 0x21
-  Visual Class: TrueColor
-  Border width: 0
-  Class: InputOutput
-  Colormap: 0x20 (installed)
-  Bit Gravity State: ForgetGravity
-  Window Gravity State: NorthWestGravity
-  Backing Store State: NotUseful
-  Save Under State: no
-  Map State: IsViewable
-  Override Redirect State: no
-  Corners:  +0+0  -0+0  -0-0  +0-0
-  -geometry 2048x768+0+0
 
 -- 
 
