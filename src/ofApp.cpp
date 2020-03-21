@@ -25,6 +25,8 @@ void ofApp::setup(){
 #endif
 */
 
+    osc.setup(OSC_PORT);
+    
     if( (ofGetEnv("PORTAL").length() != 0) ){
 
         translateX = ofToInt( ofGetEnv("TRANSLATE_X") );
@@ -93,11 +95,6 @@ void ofApp::setup(){
     bgColor = ofColor::black;
     ofSetBackgroundColor(bgColor);
 
-    ofxUDPSettings socketSettings;
-    socketSettings.receiveOn( 7979 );
-    socketSettings.blocking = false;
-    udpConnection.Setup( socketSettings );
-
     font.load( "fonts/VT323-Regular.ttf", ofGetWindowHeight()/6 );
     //string text = ofToString( ofGetTimestampString("%H:%M:%S.%i") );
     text = ofToString( ofGetTimestampString("%S.%i") );
@@ -120,16 +117,15 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::update(){
-
-    char udpMessage[1024];
-    udpConnection.Receive( udpMessage, 1024 );
-    message = udpMessage;
-    if( message != "" ){
-        ofLogVerbose() << "Received UDP message: " << message;
-
-        vector<string> color = ofSplitString( message, "," );
-        if( color.size() == 3) {
-            bgColor = ofColor(ofToInt(color[0]), ofToInt(color[1]), ofToInt(color[2]));
+    
+    while (osc.hasWaitingMessages()) {
+      ofxOscMessage m;
+      osc.getNextMessage(m);
+        
+        if(m.getAddress() == COLOR_ADDRESS) {
+            if( m.getNumArgs() == 3) {
+                bgColor = ofColor(m.getArgAsInt(0), m.getArgAsInt(1), m.getArgAsInt(2) );
+            }
         }
     }
 
