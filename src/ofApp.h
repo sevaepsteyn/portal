@@ -3,9 +3,14 @@
 
 #include "ofMain.h"
 #include "ofxNetwork.h"
+#include "ofxOsc.h"
 
 #include "Test.h"
 #include "Clock.h"
+
+#define OSC_PORT 7777
+#define BG_COLOR_ADDRESS "/color"
+#define OF_KEY_SPACE 32
 
 class ofApp : public ofBaseApp{
 
@@ -53,4 +58,6 @@ class ofApp : public ofBaseApp{
 
         float pct;
         Test myRectangle;
+    
+        ofxOscReceiver osc;
 };

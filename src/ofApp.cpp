@@ -26,6 +26,8 @@ void ofApp::setup(){
 #endif
 */
 
+    osc.setup(OSC_PORT);
+    
     if( (ofGetEnv("PORTAL").length() != 0) ){
 
         translateX = ofToInt( ofGetEnv("TRANSLATE_X") );
@@ -93,11 +95,6 @@ void ofApp::setup(){
 
     bgColor = ofColor::black;
     ofSetBackgroundColor(bgColor);
-
-    ofxUDPSettings socketSettings;
-    socketSettings.receiveOn( 7979 );
-    socketSettings.blocking = false;
-    udpConnection.Setup( socketSettings );
  
     sound.load( "e.wav");
     sound.setVolume( 0.0 );
@@ -114,16 +111,15 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::update(){
-
-    char udpMessage[1024];
-    udpConnection.Receive( udpMessage, 1024 );
-    message = udpMessage;
-    if( message != "" ){
-        ofLogVerbose() << "Received UDP message: " << message;
-
-        vector<string> color = ofSplitString( message, "," );
-        if( color.size() == 3) {
-            bgColor = ofColor(ofToInt(color[0]), ofToInt(color[1]), ofToInt(color[2]));
+    
+    while (osc.hasWaitingMessages()) {
+      ofxOscMessage m;
+      osc.getNextMessage(m);
+        
+        if(m.getAddress() == BG_COLOR_ADDRESS) {
+            if( m.getNumArgs() == 3) {
+                bgColor = ofColor(m.getArgAsInt(0), m.getArgAsInt(1), m.getArgAsInt(2) );
+            }
         }
     }
 
