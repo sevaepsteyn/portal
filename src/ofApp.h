@@ -6,6 +6,7 @@
 #include "ofxOsc.h"
 
 #include "Test.h"
+#include "Clock.h"
 
 #define OSC_PORT 7777
 #define BG_COLOR_ADDRESS "/color"
@@ -45,9 +46,7 @@ class ofApp : public ofBaseApp{
         ofxUDPManager udpConnection;
         string message;
 
-        string text;
-        ofTrueTypeFont font;
-        int textWidth, textHeight;
+        Clock clock;
 
         int x, y, z;
         float distance;
