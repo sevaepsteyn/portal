@@ -4,7 +4,8 @@
 // When not running portal mode
 #define DEBUG_SCREEN_BUFFER 32
 
-#define MIN_Z 0
+// ball park X to be window width
+#define MIN_Z -ofGetWindowWidth()
 #define MAX_Z ofGetWindowWidth()
 
 void ofApp::setup(){
@@ -97,20 +98,13 @@ void ofApp::setup(){
     socketSettings.receiveOn( 7979 );
     socketSettings.blocking = false;
     udpConnection.Setup( socketSettings );
-
-    font.load( "fonts/VT323-Regular.ttf", ofGetWindowHeight()/6 );
-    //string text = ofToString( ofGetTimestampString("%H:%M:%S.%i") );
-    text = ofToString( ofGetTimestampString("%S.%i") );
-
-    // textWidth doesn't seem to be constant, even for a mono font
-    // so we get it once and reuse it
-    textWidth = font.stringWidth(text);
-    textHeight = font.stringHeight(text);
  
     sound.load( "e.wav");
     sound.setVolume( 0.0 );
     sound.setLoop( true );
     sound.setSpeed( 0.66 );
+
+    clock.setup();
 
     //video.load( "/home/pi/media/portal-movies/out.mp4" );
     //video.load( "out.mp4" );
@@ -133,21 +127,19 @@ void ofApp::update(){
         }
     }
 
-    //string text = ofToString( ofGetTimestampString("%H:%M:%S.%i") );
-    text = ofToString( ofGetTimestampString("%S.%i") );
+    clock.update();
 
     float freq = 1.0 / 5.0;
     //float phase = freq * ofGetSystemTimeMillis()/1000 * TWO_PI;
     float phase = freq * (ofToFloat(ofGetTimestampString("%S.%i"))) * TWO_PI;
     //float dt = 1.0 / 60.0;
 
-    x = ofMap( sin( 2 * phase ), -1, 1, 0, totalX );
+    x = ofMap( sin( phase ), -1, 1, 0, totalX );
     //x = ofMap( sin( 4 * phase ), -1, 1, 0, ofGetWindowWidth() );
 
     y = ofMap( cos( phase ), -1, 1, 0, totalY );
 
-    z = ofMap( sin( 1 * phase), -1, 1, MIN_Z, MAX_Z );
-    z = 0;
+    z = ofMap( sin( phase / PI ), -1, 1, MIN_Z, MAX_Z );
 
     /*
     distance = sqrt( 0
@@ -160,7 +152,11 @@ void ofApp::update(){
 
     volume = ofMap( distance, 0, maxDistance, 1, 0 );
 
-    sound.setVolume( volume );
+    if ( z >= 0 ) {
+        sound.setVolume( volume );
+    } else {
+        sound.setVolume( 0 );
+    }
 
     if( ! sound.isPlaying() ) {
         if( ofToInt(ofGetTimestampString("%S")) == 0) {
@@ -179,7 +175,7 @@ void ofApp::draw(){
     ofSetBackgroundColor( bgColor );
     ofSetColor( bgColor.getInverted() );
         
-    font.drawString( text, (ofGetWindowWidth() - textWidth)/2, (ofGetWindowHeight() + textHeight)/2 );
+    clock.draw();
 
     ofSetColor( ofColor::pink );
     ofSetCircleResolution( 64 );
@@ -196,7 +192,9 @@ void ofApp::draw(){
 
     ofPushMatrix();
         ofTranslate( -translateX, -translateY );
-            ofDrawCircle( x, y, 256 * ofMap( z, MIN_Z, MAX_Z, 1, 0.1 ) );
+            if( z >= 0 ) {
+                ofDrawCircle( x, y, 256 * ofMap( z, MIN_Z, MAX_Z, 1, 0.1 ) );
+            }
     ofPopMatrix();
 
     //ofSetColor( 255 );

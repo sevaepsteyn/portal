@@ -5,6 +5,7 @@
 #include "ofxNetwork.h"
 
 #include "Test.h"
+#include "Clock.h"
 
 class ofApp : public ofBaseApp{
 
@@ -40,9 +41,7 @@ class ofApp : public ofBaseApp{
         ofxUDPManager udpConnection;
         string message;
 
-        string text;
-        ofTrueTypeFont font;
-        int textWidth, textHeight;
+        Clock clock;
 
         int x, y, z;
         float distance;
