@@ -25,21 +25,6 @@ void ofApp::setup(){
 #endif
 */
 
-/*
-export SIDE=NORTH
-export PORTAL=YES
-export MAP_ID=e
-export COUNT_X=6
-export COUNT_Y=3
-export SIZE_X=1280
-export SIZE_Y=720
-export GRID_ID=15
-export TRANSLATE_X=6432
-export TRANSLATE_Y=24
-export PORTAL_ID=portal09
-*/
-
-
     if( (ofGetEnv("PORTAL").length() != 0) ){
 
         translateX = ofToInt( ofGetEnv("TRANSLATE_X") );
@@ -78,6 +63,9 @@ export PORTAL_ID=portal09
 
         totalX = ofGetWindowWidth();
         totalY = ofGetWindowHeight();
+
+        portalId = "";
+        mapId = "";
 
         ofLogNotice() << "No portal location received from env";
     }
@@ -123,6 +111,9 @@ export PORTAL_ID=portal09
     sound.setVolume( 0.0 );
     sound.setLoop( true );
     sound.setSpeed( 0.66 );
+
+    //video.load( "/home/pi/media/portal-movies/out.mp4" );
+    //video.load( "out.mp4" );
 
     myRectangle.setup();
 }
@@ -174,8 +165,12 @@ void ofApp::update(){
     if( ! sound.isPlaying() ) {
         if( ofToInt(ofGetTimestampString("%S")) == 0) {
             sound.play();
+            //video.setVolume( 0.66 );
+            //video.play();
         }
     }
+
+    //video.update();
 
 }
 
@@ -203,6 +198,10 @@ void ofApp::draw(){
         ofTranslate( -translateX, -translateY );
             ofDrawCircle( x, y, 256 * ofMap( z, MIN_Z, MAX_Z, 1, 0.1 ) );
     ofPopMatrix();
+
+    //ofSetColor( 255 );
+    //video.draw( 0, 0, totalX, totalY );
+
 
     //myRectangle.draw();
 

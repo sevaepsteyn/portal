@@ -50,6 +50,8 @@ class ofApp : public ofBaseApp{
         ofSoundPlayer sound;
         float volume;
 
+        ofVideoPlayer video;
+
         float pct;
         Test myRectangle;
 };
