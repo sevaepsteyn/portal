@@ -8,7 +8,7 @@
 #include "Test.h"
 
 #define OSC_PORT 7777
-#define COLOR_ADDRESS "/color"
+#define BG_COLOR_ADDRESS "/color"
 #define OF_KEY_SPACE 32
 
 class ofApp : public ofBaseApp{

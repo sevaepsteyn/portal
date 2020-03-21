@@ -122,7 +122,7 @@ void ofApp::update(){
       ofxOscMessage m;
       osc.getNextMessage(m);
         
-        if(m.getAddress() == COLOR_ADDRESS) {
+        if(m.getAddress() == BG_COLOR_ADDRESS) {
             if( m.getNumArgs() == 3) {
                 bgColor = ofColor(m.getArgAsInt(0), m.getArgAsInt(1), m.getArgAsInt(2) );
             }
