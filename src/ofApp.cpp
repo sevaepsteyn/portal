@@ -106,8 +106,6 @@ void ofApp::setup(){
     //video.load( "/home/pi/media/portal-movies/out.mp4" );
     //video.load( "out.mp4" );
 
-    myRectangle.setup();
-}
 
 //--------------------------------------------------------------
 void ofApp::update(){
@@ -195,10 +193,6 @@ void ofApp::draw(){
 
     //ofSetColor( 255 );
     //video.draw( 0, 0, totalX, totalY );
-
-
-    //myRectangle.draw();
-
 
 }
 

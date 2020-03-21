@@ -5,7 +5,6 @@
 #include "ofxNetwork.h"
 #include "ofxOsc.h"
 
-#include "Test.h"
 #include "Clock.h"
 
 #define OSC_PORT 7777
@@ -56,8 +55,5 @@ class ofApp : public ofBaseApp{
 
         ofVideoPlayer video;
 
-        float pct;
-        Test myRectangle;
-    
         ofxOscReceiver osc;
 };
