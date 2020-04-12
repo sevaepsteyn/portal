@@ -1,4 +1,5 @@
 /* vim: set tabstop=4 shiftwidth=4 expandtab: */
+
 #include "Clock.h"
 
 void Clock::setup(){

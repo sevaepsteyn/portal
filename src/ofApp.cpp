@@ -7,7 +7,6 @@ void ofApp::setup(){
     ofSetWindowTitle( "Mars Portal" );
     ofSetVerticalSync( true );
     ofEnableAntiAliasing();
-
     ofSetLogLevel( OF_LOG_VERBOSE );
 
 /*
@@ -22,53 +21,76 @@ void ofApp::setup(){
     
     if( (ofGetEnv("PORTAL").length() != 0) ){
 
-        translateX = ofToInt( ofGetEnv("TRANSLATE_X") );
-        translateY = ofToInt( ofGetEnv("TRANSLATE_Y") );
 
-        sizeX = ofToInt( ofGetEnv("SIZE_X") );
-        sizeY = ofToInt( ofGetEnv("SIZE_Y") );
+        portal.translateX = ofToInt( ofGetEnv("TRANSLATE_X") );
+        portal.translateY = ofToInt( ofGetEnv("TRANSLATE_Y") );
 
-        totalX = ofToInt( ofGetEnv("TOTAL_X") );
-        totalY = ofToInt( ofGetEnv("TOTAL_Y") );
+        portal.sizeX = ofToInt( ofGetEnv("SIZE_X") );
+        portal.sizeY = ofToInt( ofGetEnv("SIZE_Y") );
 
-        shiftX = ofToInt( ofGetEnv("SHIFT_X") );
-        borderX = ofToInt( ofGetEnv("BORDER_X") );
-        translateX += shiftX + borderX;
+        portal.totalX = ofToInt( ofGetEnv("TOTAL_X") );
+        portal.totalY = ofToInt( ofGetEnv("TOTAL_Y") );
 
-        portalId = ofGetEnv("PORTAL_ID");
-        mapId = ofGetEnv("MAP_ID");
+        portal.shiftX = ofToInt( ofGetEnv("SHIFT_X") );
+        portal.borderX = ofToInt( ofGetEnv("BORDER_X") );
+        if( portal.shiftX != 0 ) {
+            portal.translateX += portal.shiftX + portal.borderX;
+        }
 
-        ofLogNotice() << "My location, x: " << translateX << ", y: " << translateY;
+        portal.portalId = ofGetEnv("PORTAL_ID");
+        portal.mapId = ofGetEnv("MAP_ID");
 
-        ofSetWindowShape( sizeX, sizeY );
-        ofSetWindowPosition( shiftX, 0 );
+        ofLog() << "Side" + ofGetEnv("SIDE");
+        if ( ofToString(ofGetEnv("SIDE")).compare("NORTH") ) {
+            portal.side = 0;
+        } else {
+            portal.side = 1;
+        }
+
+        ofLogNotice() << "My location, x: " << portal.translateX << ", y: " << portal.translateY;
+
 
     } else {
 
-        translateX = 0;
-        translateY = 0;
+        portal.translateX = 0;
+        portal.translateY = 0;
 
-        sizeX = ofGetWindowWidth();
-        sizeY = ofGetWindowHeight();
+        portal.sizeX = ofGetWindowWidth();
+        portal.sizeY = ofGetWindowHeight();
 
-        totalX = ofGetWindowWidth();
-        totalY = ofGetWindowHeight();
+        portal.totalX = portal.sizeX;
+        portal.totalY = portal.sizeY;
 
-        shiftX = 0;
-        borderX = 0;
+        portal.shiftX = 0;
+        portal.borderX = 0;
 
-        portalId = "n/a";
-        mapId = "n/a";
+        portal.portalId = "n/a";
+        portal.mapId = "n/a";
 
         ofLogNotice() << "No portal info received from env";
     }
+
+    ofSetWindowShape( portal.sizeX, portal.sizeY );
+    ofSetWindowPosition( portal.shiftX, 0 );
 
     bgColor = ofColor::black;
     ofSetBackgroundColor(bgColor);
  
     clock.setup();
 
-    ball.setup( translateX, translateY, sizeX, sizeY, totalX, totalY );
+    ball.setup( portal );
+
+/*
+    rose.setup(
+        ofPoint(ofGetWidth()/2, ofGetHeight()/2),
+        ofPoint(ofRandom(0,9),ofRandom(0,9)),
+        ofColor(ofRandom(0,255),ofRandom(0,255),ofRandom(0,255)),
+        ofRandom(0.1,1),
+        ofPoint(ofRandom(150,300),ofRandom(150,300)),
+        ofRandom(0,1),
+        ofRandom(1.0,2.0)
+    );
+*/
 
 }
 
@@ -88,6 +110,8 @@ void ofApp::update(){
     clock.update();
 
     ball.update();
+
+    //rose.update();
 }
 
 //--------------------------------------------------------------
@@ -100,17 +124,22 @@ void ofApp::draw(){
     ofSetCircleResolution( 64 );
 
     // general info
-    ofDrawBitmapString( "translate x, y: " + ofToString(translateX) + ", " + ofToString(translateY), 10, 10 );
+    ofDrawBitmapString( "translate x, y: " + ofToString(portal.translateX) + ", " + ofToString(portal.translateY), 10, 10 );
     ofDrawBitmapString( "screen width, height: " + ofToString(ofGetWindowWidth()) + ", " + ofToString(ofGetWindowHeight()), 10, 30 );
-    ofDrawBitmapString( "total width, total height: " + ofToString(totalX) + ", " + ofToString(totalY), 10, 50 );
-    ofDrawBitmapString( "portalId (mapId): " + portalId + " (" + mapId + ")", 10, 70 );
+    ofDrawBitmapString( "total width, total height: " + ofToString(portal.totalX) + ", " + ofToString(portal.totalY), 10, 50 );
+    ofDrawBitmapString( "portalId (mapId): " + portal.portalId + " (" + portal.mapId + ")", 10, 70 );
+    ofDrawBitmapString( "side: " + ofToString(portal.side), 10, 90 );
 
+    // draw translated to the portal
     ofPushMatrix();
-        ofTranslate( -translateX, -translateY );
+        ofTranslate( -portal.translateX, -portal.translateY );
             ball.draw();
     ofPopMatrix();
 
+    // draw to my screen only
     clock.draw();
+
+    //rose.draw();
 
 
 }

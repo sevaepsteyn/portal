@@ -2,16 +2,15 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxNetwork.h"
 #include "ofxOsc.h"
 
 #define OSC_PORT 7777
 #define BG_COLOR_ADDRESS "/color"
-#define OF_KEY_SPACE 32
 
-#include "Clock.h"
-
+#include "PortalSettings.h"
 #include "Ball.h"
+#include "Clock.h"
+#include "Rose.h"
 
 class ofApp : public ofBaseApp{
 
@@ -32,11 +31,15 @@ class ofApp : public ofBaseApp{
         void dragEvent(ofDragInfo dragInfo);
         void gotMessage(ofMessage msg);
 
+        PortalSettings portal;
+
+/*
         int translateX, translateY;
         int sizeX, sizeY;
         int totalX, totalY;
         int borderX, shiftX;
         string portalId, mapId;
+*/
 
         ofColor bgColor;
 
@@ -45,5 +48,7 @@ class ofApp : public ofBaseApp{
         Clock clock;
 
         Ball ball;
+
+        Rose rose;
 
 };
